@@ -4,18 +4,20 @@ from torch.distributions.uniform import Uniform
 from torch.optim import Adam
 import matplotlib.pyplot as plt
 import os
-import gc
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = "cpu"
 
 N = 1_000_000
 D = 3
 bound = 10.
 
-batch = N//20
-epochs = 1000
-hidden_dimension = 2
-learning_rate = 1e-4
+batch = N//1000
+epochs = 30
+hidden_dimension = 8
+learning_rate = 1e-3
 
-force_train = True
+force_train = False
 
 def generate_dataset(N, D, a, b):
     unif = Uniform(a, b)
@@ -31,12 +33,6 @@ class Estimator(nn.Module):
             nn.ReLU(),
             nn.Linear(h, h),
             nn.ReLU(),
-            nn.Linear(h, h),
-            nn.ReLU(),
-            nn.Linear(h, h),
-            nn.ReLU(),
-            nn.Linear(h, h),
-            nn.ReLU(),
             nn.Linear(h, D)
         )
         return
@@ -45,7 +41,8 @@ class Estimator(nn.Module):
         return self.fw(x)
 
 label, data = generate_dataset(N, D, -bound, bound)
-model = Estimator(D, hidden_dimension)
+label, data = (label.to(device=device), data.to(device=device))
+model = Estimator(D, hidden_dimension).to(device=device)
 loss = nn.MSELoss()
 L = []
 optimizer = Adam(model.parameters(), lr = learning_rate)
@@ -74,4 +71,4 @@ plt.loglog(L)
 plt.show()
 
 
-print(model(torch.tensor([[1., 1., 1.], [0., 0., 0.], [12., 12., 12.]])))
+print(model(torch.tensor([[1., 1., 1.], [0., 0., 0.], [12., 12., 12.]]).to(device=device)))
