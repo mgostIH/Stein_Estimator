@@ -44,6 +44,10 @@ label, data = generate_dataset(N, D, -bound, bound)
 label, data = (label.to(device=device), data.to(device=device))
 model = Estimator(D, hidden_dimension).to(device=device)
 loss = nn.MSELoss()
+
+average_estimate = loss(label, data)
+print(f"The average estimate using the default estimator is : {average_estimate}")
+
 L = []
 optimizer = Adam(model.parameters(), lr = learning_rate)
 
