@@ -13,7 +13,7 @@ bound = 10.
 batch = N//20
 epochs = 1000
 hidden_dimension = 2
-learning_rate = 1e-3
+learning_rate = 1e-4
 
 force_train = True
 
@@ -47,7 +47,7 @@ class Estimator(nn.Module):
 label, data = generate_dataset(N, D, -bound, bound)
 model = Estimator(D, hidden_dimension)
 loss = nn.MSELoss()
-#L = []
+L = []
 optimizer = Adam(model.parameters(), lr = learning_rate)
 
 if not os.path.isfile("model.pt") or force_train:
@@ -60,18 +60,18 @@ if not os.path.isfile("model.pt") or force_train:
             l = loss(model_output, expected_output)
             l.backward()
             optimizer.step()
-            #L.append(l.detach().reshape((1,)))
-    #L = torch.cat(L).detach().numpy()
+            L.append(l.item())
+    L = torch.tensor(L)
     torch.save(model.state_dict(), "model.pt")
-    #torch.save(L, "loss.pt")
+    torch.save(L, "loss.pt")
 else:
     model.load_state_dict(torch.load("model.pt"))
-    #L = torch.load("loss.pt")
+    L = torch.load("loss.pt")
 
 
-#print(f"last few losses:\n {L[-10:]}")
-#plt.loglog(L)
-#plt.show()
+print(f"last few losses:\n {L[-10:]}")
+plt.loglog(L)
+plt.show()
 
 
 print(model(torch.tensor([[1., 1., 1.], [0., 0., 0.], [12., 12., 12.]])))
